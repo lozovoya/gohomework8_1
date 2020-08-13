@@ -3,6 +3,7 @@ package card
 import (
 	"bytes"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -16,9 +17,9 @@ import (
 var ErrTransactionFulfill = errors.New("Slice of transactions is empty after generating func")
 
 type Transaction struct {
-	Amount  int64
-	OwnerId int
-	MCC     string
+	Amount  int64  `json:"amount"`
+	OwnerId int    `json:"owner_id"`
+	MCC     string `json:"mcc"`
 }
 
 type Mcc map[string]string
@@ -115,4 +116,35 @@ func MapRowToTransaction(row []string) (amount int64, owner int) {
 		log.Println(err)
 	}
 	return amount, owner
+}
+
+func (s *Service) ExportJson(file string) error {
+
+	encoded, err := json.Marshal(s.transactions)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	err = ioutil.WriteFile(file, encoded, 0777)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	return nil
+}
+
+func (s *Service) ImportJson(file string) error {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	err = json.Unmarshal(data, &s.transactions)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	return nil
 }
