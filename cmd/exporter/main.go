@@ -23,10 +23,6 @@ func main() {
 	}
 	defer trace.Stop()
 
-	if err := execute("export.csv"); err != nil {
-		os.Exit(1)
-	}
-
 	if err := execute("export.json"); err != nil {
 		os.Exit(1)
 	}
@@ -77,12 +73,6 @@ func execute(filename string) (err error) {
 		return
 	}
 	fmt.Println("generating is finished")
-
-	//err = svc.Export(file)
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
 
 	err = svc.ExportJson(filename)
 	if err != nil {

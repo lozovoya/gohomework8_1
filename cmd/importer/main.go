@@ -30,11 +30,6 @@ func main() {
 func execute(filename string) (err error) {
 
 	svc := card.NewService()
-	//err = svc.ImportCSV(filename)
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
 
 	err = svc.ImportJson(filename)
 	if err != nil {
