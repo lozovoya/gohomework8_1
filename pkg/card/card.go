@@ -16,9 +16,10 @@ import (
 var ErrTransactionFulfill = errors.New("Slice of transactions is empty after generating func")
 
 type Transaction struct {
-	Amount  int64
-	OwnerId int
-	MCC     string
+	XMLName `xml:"transaction"`
+	Amount  int64  `xml:"amount"`
+	OwnerId int    `xml:"owner_id"`
+	MCC     string `xml:"mcc"`
 }
 
 type Mcc map[string]string
