@@ -19,6 +19,11 @@ type Transaction struct {
 	MCC     string `xml:"mcc"`
 }
 
+type exportTransactions struct {
+	XMLName      string `xml:"transactions"`
+	Transactions []*Transaction
+}
+
 type Mcc map[string]string
 type User map[int]string
 
@@ -61,26 +66,29 @@ func (s *Service) GenerateTransactions(max int, amount int64, mccList Mcc, userL
 }
 
 func (s *Service) ExportXML(filename string) error {
+
 	s.mu.Lock()
 	if len(s.transactions) == 0 {
 		s.mu.Unlock()
 		return nil
 	}
 
-	encoded, err := xml.Marshal(s.transactions)
+	var t exportTransactions
+	t.Transactions = s.transactions
+	s.mu.Unlock()
+
+	encoded, err := xml.Marshal(t)
+	encoded = append([]byte(xml.Header), encoded...)
 	if err != nil {
 		log.Println(err)
-		s.mu.Unlock()
 		return nil
 	}
 
 	err = ioutil.WriteFile(filename, encoded, 0777)
 	if err != nil {
 		log.Println(err)
-		s.mu.Unlock()
 		return nil
 	}
-	s.mu.Unlock()
 	return nil
 }
 
@@ -91,10 +99,12 @@ func (s *Service) ImportXML(file string) error {
 		return nil
 	}
 
-	err = xml.Unmarshal(data, &s.transactions)
+	var t exportTransactions
+	err = xml.Unmarshal(data, &t)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
+	s.transactions = t.Transactions
 	return nil
 }
