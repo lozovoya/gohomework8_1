@@ -1,14 +1,11 @@
 package card
 
 import (
-	"bytes"
-	"encoding/csv"
+	"encoding/json"
 	"errors"
-	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -16,9 +13,9 @@ import (
 var ErrTransactionFulfill = errors.New("Slice of transactions is empty after generating func")
 
 type Transaction struct {
-	Amount  int64
-	OwnerId int
-	MCC     string
+	Amount  int64  `json:"amount"`
+	OwnerId int    `json:"owner_id"`
+	MCC     string `json:"mcc"`
 }
 
 type Mcc map[string]string
@@ -62,57 +59,33 @@ func (s *Service) GenerateTransactions(max int, amount int64, mccList Mcc, userL
 	return nil
 }
 
-func (s *Service) Export(writer io.Writer) error {
-	s.mu.Lock()
-	if len(s.transactions) == 0 {
-		s.mu.Unlock()
+func (s *Service) ExportJson(file string) error {
+
+	encoded, err := json.Marshal(s.transactions)
+	if err != nil {
+		log.Println(err)
 		return nil
 	}
 
-	records := make([][]string, 0)
-	for _, t := range s.transactions {
-		record := []string{
-			strconv.FormatInt(t.Amount, 10),
-			t.MCC,
-			strconv.FormatInt(int64(t.OwnerId), 10),
-		}
-		records = append(records, record)
+	err = ioutil.WriteFile(file, encoded, 0777)
+	if err != nil {
+		log.Println(err)
+		return nil
 	}
-	s.mu.Unlock()
-
-	w := csv.NewWriter(writer)
-	return w.WriteAll(records)
+	return nil
 }
 
-func (s *Service) ImportCSV(file string) error {
+func (s *Service) ImportJson(file string) error {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
-	reader := csv.NewReader(bytes.NewReader(data))
-	records, err := reader.ReadAll()
+
+	err = json.Unmarshal(data, &s.transactions)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
-	for _, i := range records {
-		t := Transaction{MCC: i[1]}
-		t.Amount, t.OwnerId = MapRowToTransaction(i)
-		s.transactions = append(s.transactions, &t)
-	}
 	return nil
-}
-
-func MapRowToTransaction(row []string) (amount int64, owner int) {
-	a, err := strconv.Atoi(row[0])
-	if err != nil {
-		log.Println(err)
-	}
-	amount = int64(a)
-	owner, err = strconv.Atoi(row[2])
-	if err != nil {
-		log.Println(err)
-	}
-	return amount, owner
 }

@@ -21,7 +21,7 @@ func main() {
 	}
 	defer trace.Stop()
 
-	if err := execute("export.csv"); err != nil {
+	if err := execute("export.json"); err != nil {
 		os.Exit(1)
 	}
 
@@ -30,7 +30,8 @@ func main() {
 func execute(filename string) (err error) {
 
 	svc := card.NewService()
-	err = svc.ImportCSV(filename)
+
+	err = svc.ImportJson(filename)
 	if err != nil {
 		log.Println(err)
 		return
