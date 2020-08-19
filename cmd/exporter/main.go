@@ -23,7 +23,7 @@ func main() {
 	}
 	defer trace.Stop()
 
-	if err := execute("export.csv"); err != nil {
+	if err := execute("export.xml"); err != nil {
 		os.Exit(1)
 	}
 
@@ -74,7 +74,7 @@ func execute(filename string) (err error) {
 	}
 	fmt.Println("generating is finished")
 
-	err = svc.Export(file)
+	err = svc.ExportXML(filename)
 	if err != nil {
 		log.Println(err)
 		return
