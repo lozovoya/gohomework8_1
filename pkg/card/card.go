@@ -14,6 +14,7 @@ import (
 )
 
 var ErrTransactionFulfill = errors.New("Slice of transactions is empty after generating func")
+var ErrNoRecords = errors.New("No records in file")
 
 type Transaction struct {
 	Amount  int64
@@ -96,23 +97,39 @@ func (s *Service) ImportCSV(file string) error {
 		log.Println(err)
 		return nil
 	}
+	if len(records) == 0 {
+		log.Println(ErrNoRecords)
+		return ErrNoRecords
+	}
 	for _, i := range records {
 		t := Transaction{MCC: i[1]}
-		t.Amount, t.OwnerId = MapRowToTransaction(i)
+		t.Amount, t.OwnerId, err = MapRowToTransaction(i)
+		if err != nil {
+			log.Println(err)
+			return nil
+		}
 		s.transactions = append(s.transactions, &t)
 	}
 	return nil
 }
 
-func MapRowToTransaction(row []string) (amount int64, owner int) {
+func MapRowToTransaction(row []string) (amount int64, owner int, err error) {
+
+	if len(row) == 0 {
+		log.Println(ErrNoRecords)
+		return
+	}
+
 	a, err := strconv.Atoi(row[0])
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	amount = int64(a)
 	owner, err = strconv.Atoi(row[2])
 	if err != nil {
 		log.Println(err)
+		return
 	}
-	return amount, owner
+	return amount, owner, nil
 }
