@@ -20,8 +20,8 @@ type Transaction struct {
 }
 
 type exportTransactions struct {
-	XMLName      string `xml:"transactions"`
-	Transactions []*Transaction
+	XMLName      string         `xml:"transactions"`
+	Transactions []*Transaction `xml:"transaction"`
 }
 
 type Mcc map[string]string
